@@ -22,11 +22,19 @@ sudo apt install krb5-user
 
 ## Join realm
 
-```
-sudo realm join domain.tld
-```
+This joins the computer to the AD domain through realm.
 
-Note: replace `domain.tld` with your AD DNS name.
+```
+sudo realm join -v domain.tld
+```
+> Note: replace `domain.tld` with your AD DNS name.
+
+After joining, you should be able to login using an AD user:
+
+```
+sudo login
+```
+And enter an AD credential. Login through SSH won't work.
 
 ## Enable home directory creation
 
@@ -34,19 +42,20 @@ Note: replace `domain.tld` with your AD DNS name.
 sudo pam-auth-update --enable mkhomedir
 ```
 
-## Edit smb.conf
+## Setup Samba for the domain
 
 Edit `/etc/samba/smb.conf` with the following:
 
 ```
 [global]
-workgroup = GAAL
-realm = GAAL.EU
+workgroup = DOMAIN
+realm = DOMAIN.TLD
 security = ADS
 kerberos method = secrets and keytab
 ```
+> Note: Replace DOMAIN with your AD domain's name, and DOMAIN.TLD with your AD domain's DNS name.
 
-Note: the last line tells samba to write computer account password to not only the samba secrets file but to keytab too.
+The last line tells samba to write computer account password to not only the samba secrets file but to keytab too.
 
 Also add:
 
@@ -57,16 +66,15 @@ idmap config * : range = 10000-19999
 idmap config DOMAIN : backend = nss
 idmap config DOMAIN : range = 200000-2000200000
 ```
+> Note: replace `DOMAIN` with your AD domain's name (not DNS name).
 
-Note: replace `DOMAIN` with your AD domain's name (not DNS name).
-
-## Edit sssd.conf
+## Set SSSD to also update Samba key store
 
 Add the following line to `/etc/sssd/sssd.conf`:
 ```
 ad_update_samba_machine_account_password = true
 ```
-Note: this line tells sssd to write computer account password not only to keytab but to the samba secrets file too.
+This line tells sssd to write computer account password not only to keytab but to the samba secrets file too.
 
 ## Restart services
 ```
@@ -78,13 +86,14 @@ systemctl start winbind
 
 ## Join AD domain through net
 
+This joins the computer to the domain through net too. Yes, you need to join through `net` too, not just through `realm`.
+
 ```
 sudo net ads join -U Administrator
 ```
+> Note: replace Administrator with the username that has permissions to join computers to the domain.
 
-Note: replace Administrator with the user that has permissions to join computers to the domain.
-
-## Create a share
+## Create a Samba share
 
 Create the share directory:
 
@@ -92,7 +101,7 @@ Create the share directory:
 mkdir /srv/share1
 ```
 
-Add a share to `/etc/samba/smb.conf`:
+Add a share definition to `/etc/samba/smb.conf`:
 ```
 [share1]
 path = /srv/share1
@@ -100,12 +109,12 @@ read only = no
 ```
 
 Set permissions on the directory:
-
 ```
 sudo chgrp "DOMAIN\\groupname" /srv/share1
 ```
+This will allow access to `DOMAIN\\groupname` owner access to the directory. Customize permissions as needed through `chgrp`, `chown` and `chmod`.
 
-Restart samba
+Then, restart samba.
 ```
 systemctl restart smbd
 ```
