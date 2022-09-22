@@ -61,7 +61,7 @@ kerberos method = secrets and keytab
 
 The last line tells samba to write computer account password to not only the samba secrets file but to keytab too.
 
-Also add:
+Also add `idmap` configuration. My understanding is that this will map windows users to Linux user id's for Samba.
 
 ```
 [global]
