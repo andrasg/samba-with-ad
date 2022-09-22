@@ -4,12 +4,16 @@ I have not found any complete guides on how to configure Samba to do access cont
 
 Note: this guide reflects my understanding of the subject and I might be wrong... :)
 
-## Install SSSD
-
-Install required components
+## Install SSSD components
 
 ```
 sudo apt install sssd-ad sssd-tools realmd adcli samba winbind
+```
+
+## Install Samba components
+
+```
+sudo apt samba winbind
 ```
 
 ## Install Kerberos tools
@@ -78,10 +82,10 @@ This line tells sssd to write computer account password not only to keytab but t
 
 ## Restart services
 ```
-systemctl restart sssd
-systemctl restart smbd
-systemctl enable winbind
-systemctl start winbind
+sudo systemctl restart sssd
+sudo systemctl restart smbd
+sudo systemctl enable winbind
+sudo systemctl start winbind
 ```
 
 ## Join AD domain through net
@@ -112,11 +116,11 @@ Set permissions on the directory:
 ```
 sudo chgrp "DOMAIN\\groupname" /srv/share1
 ```
-This will allow access to `DOMAIN\\groupname` owner access to the directory. Customize permissions as needed through `chgrp`, `chown` and `chmod`.
+This will allow `DOMAIN\\groupname` owner access to the directory. Customize permissions as needed through `chgrp`, `chown` and `chmod`.
 
-Then, restart samba.
+Then, restart samba so it picks up the new share.
 ```
-systemctl restart smbd
+sudo systemctl restart smbd
 ```
 
 ## Test
