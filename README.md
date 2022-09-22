@@ -2,7 +2,7 @@
 
 I have not found any complete guides on how to configure Samba to do access control on shares using Active Directory users and groups. I finally worked it out on an Ubunutu 22 VM and documented the steps.
 
-Note: this guide reflects my understanding of the subject and I might be wrong... :)
+> Note: this guide reflects my understanding of the subject and I might be wrong... :)
 
 ## Install SSSD components
 
